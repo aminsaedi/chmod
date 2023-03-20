@@ -33,6 +33,14 @@
     question = generateQuestion();
   });
 
+  function rotate() {
+    const first = question[0];
+    const second = question[1];
+    const third = question[2];
+
+    question = [third, first, second];
+  }
+
   $: {
     if (inputs.every((input) => input?.length > 0 && input !== "?")) {
       const answer = inputs.join("");
@@ -52,12 +60,14 @@
 </script>
 
 <div class="score-container">
-  <i class="fa-solid fa-bolt" />
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <i class="fa-solid fa-question clickable" on:click={() => alert("Help")} />
   <div class="score-text">
     Score:
     <span>{score}</span>
   </div>
-  <i class="fa-solid fa-rotate" />
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <i class="fa-solid fa-rotate clickable" on:click={rotate} />
 </div>
 <div class="box-container">
   {#each question as box, index}
@@ -128,5 +138,9 @@
 
   .score-text {
     font-size: 5rem;
+  }
+
+  .clickable {
+    cursor: pointer;
   }
 </style>
