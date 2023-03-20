@@ -1,65 +1,77 @@
 <script lang="ts">
-  import { spring } from "svelte/motion";
+  import { onMount } from "svelte";
 
-  let count = 0;
+  let question: [number, number, number] = [7, 7, 7];
+  let inputs: string[] = Array(9).fill("?");
+  let score = 0;
 
-  const displayed_count = spring();
-  $: displayed_count.set(count);
-  $: offset = modulo($displayed_count, 1);
+  function generateQuestion(): [number, number, number] {
+    // select a random number between 1 and 7
+    const first = Math.floor(Math.random() * 7) + 1;
+    const second = Math.floor(Math.random() * 7) + 1;
+    const third = Math.floor(Math.random() * 7) + 1;
 
-  function modulo(n: number, m: number) {
-    // handle negative numbers
-    return ((n % m) + m) % m;
+    return [first, second, third];
+  }
+
+  function octalToStringMode(octal) {
+    const permissions = [
+      ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"], // User
+      ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"], // Group
+      ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"], // Other
+    ];
+    const digitToPermission = (digit, index) => permissions[index][digit];
+    const mode = octal.toString().padStart(3, "0");
+    const digits = mode.split("").map((digit) => +digit);
+    const user = digitToPermission(digits[0], 0);
+    const group = digitToPermission(digits[1], 1);
+    const other = digitToPermission(digits[2], 2);
+    return `${user}${group}${other}`;
+  }
+
+  onMount(() => {
+    question = generateQuestion();
+  });
+
+  $: {
+    if (inputs.every((input) => input?.length > 0 && input !== "?")) {
+      const answer = inputs.join("");
+
+      const correct = octalToStringMode(Number(question.join("")));
+
+      if (answer === correct) {
+        alert("Correct!");
+        inputs = Array(9).fill("?");
+        score += Number(question.join(""));
+        question = generateQuestion();
+      } else {
+        alert("Wrong!");
+      }
+    }
   }
 </script>
 
+<div class="score-container">
+  <i class="fa-solid fa-bolt" />
+  <div class="score-text">
+    Score:
+    <span>{score}</span>
+  </div>
+  <i class="fa-solid fa-rotate" />
+</div>
 <div class="box-container">
-  <div class="box" id="box-1" />
-  <div class="box" id="box-2" />
-  <div class="box" id="box-3" />
+  {#each question as box, index}
+    <div class="box" id={`box-${index + 1}`}>{box}</div>
+  {/each}
 </div>
 <div class="answer-container">
-  <input class="answer-input" type="text" id="answer-input-1" />
-  <input class="answer-input" type="text" id="answer-input-2" />
-  <input class="answer-input" type="text" id="answer-input-3" />
-  <input class="answer-input" type="text" id="answer-input-4" />
-  <input class="answer-input" type="text" id="answer-input-5" />
-  <input class="answer-input" type="text" id="answer-input-6" />
-  <input class="answer-input" type="text" id="answer-input-7" />
-  <input class="answer-input" type="text" id="answer-input-8" />
-  <input class="answer-input" type="text" id="answer-input-9" />
-</div>
-
-<div class="counter">
-  <button
-    on:click={() => (count -= 1)}
-    aria-label="Decrease the counter by one"
-  >
-    <svg aria-hidden="true" viewBox="0 0 1 1">
-      <path d="M0,0.5 L1,0.5" />
-    </svg>
-  </button>
-
-  <div class="counter-viewport">
-    <div
-      class="counter-digits"
-      style="transform: translate(0, {100 * offset}%)"
-    >
-      <strong class="hidden" aria-hidden="true"
-        >{Math.floor($displayed_count + 1)}</strong
-      >
-      <strong>{Math.floor($displayed_count)}</strong>
-    </div>
-  </div>
-
-  <button
-    on:click={() => (count += 1)}
-    aria-label="Increase the counter by one"
-  >
-    <svg aria-hidden="true" viewBox="0 0 1 1">
-      <path d="M0,0.5 L1,0.5 M0.5,0 L0.5,1" />
-    </svg>
-  </button>
+  {#each Array(9) as _, input}
+    <input
+      class="answer-input"
+      id="answer-input-{input}"
+      bind:value={inputs[input]}
+    />
+  {/each}
 </div>
 
 <style>
@@ -73,6 +85,9 @@
     width: 140px;
     height: 190px;
     background: #eee;
+    color: #000;
+    font-size: 10rem;
+    text-align: center;
     border-radius: 10px;
     margin: 0 10px;
   }
@@ -99,5 +114,19 @@
 
   .answer-input:focus {
     outline: none;
+  }
+
+  .score-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    color: #fff;
+    font-size: 3rem;
+  }
+
+  .score-text {
+    font-size: 5rem;
   }
 </style>
