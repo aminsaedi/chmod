@@ -14,15 +14,16 @@
     return [first, second, third];
   }
 
-  function octalToStringMode(octal) {
+  function octalToStringMode(octal: number) {
     const permissions = [
       ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"], // User
       ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"], // Group
       ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"], // Other
     ];
-    const digitToPermission = (digit, index) => permissions[index][digit];
+    const digitToPermission = (digit: number, index: number): string =>
+      permissions[index][digit];
     const mode = octal.toString().padStart(3, "0");
-    const digits = mode.split("").map((digit) => +digit);
+    const digits = mode.split("").map((digit: string) => +digit);
     const user = digitToPermission(digits[0], 0);
     const group = digitToPermission(digits[1], 1);
     const other = digitToPermission(digits[2], 2);
@@ -44,16 +45,12 @@
   $: {
     if (inputs.every((input) => input?.length > 0 && input !== "?")) {
       const answer = inputs.join("");
-
       const correct = octalToStringMode(Number(question.join("")));
-
       if (answer === correct) {
         alert("Correct!");
         inputs = Array(9).fill("?");
         score += Number(question.join(""));
         question = generateQuestion();
-      } else {
-        alert("Wrong!");
       }
     }
   }
